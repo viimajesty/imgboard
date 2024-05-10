@@ -1,12 +1,21 @@
 const express = require('express');
-const { createServer } = require('node:http');
+const https = require('https');
+const { readFileSync, existsSync, mkdirSync, writeFile } = require('node:fs');
 const { join } = require('node:path');
 const { Server } = require('socket.io');
 
 const app = express();
-const server = createServer(app);
+const server = https.createServer({
+  key: readFileSync('./privkey.pem'),
+  cert: readFileSync('./cert.pem')
+}, app);
 const io = new Server(server);
 const fs = require("fs")
+
+server.listen(3002, () => {
+  console.log('server running at http://localhost:3002');
+});
+
 
 app.get('/', (req, res) => {
   res.sendFile(join(__dirname, 'index.html'));
@@ -95,22 +104,18 @@ function removeImage(id, file, reload) {
 }
 
 
-server.listen(3002, () => {
-  console.log('server running at http://localhost:3002');
-});
-
 
 var dir = './public';
 if (!existsSync(dir)) {
-    mkdirSync(dir);
+  mkdirSync(dir);
 }
 //check if x.json exists, if it does not then create it and put "[]" inside the file
 if (!existsSync('./images.json')) {
-    writeFile('./images.json', '[]', (err) => {
-        if (err) logToFile(err);
-    });
-}if (!existsSync('./forReview.json')) {
-    writeFile('./forReview.json', '[]', (err) => {
-        if (err) logToFile(err);
-    });
+  writeFile('./images.json', '[]', (err) => {
+    if (err) logToFile(err);
+  });
+} if (!existsSync('./forReview.json')) {
+  writeFile('./forReview.json', '[]', (err) => {
+    if (err) logToFile(err);
+  });
 }

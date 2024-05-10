@@ -131,3 +131,5 @@ dist
 
 public/
 .DS_Store
+cert.pem
+privkey.pem
