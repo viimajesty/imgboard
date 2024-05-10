@@ -98,3 +98,19 @@ function removeImage(id, file, reload) {
 server.listen(3002, () => {
   console.log('server running at http://localhost:3002');
 });
+
+
+var dir = './public';
+if (!existsSync(dir)) {
+    mkdirSync(dir);
+}
+//check if x.json exists, if it does not then create it and put "[]" inside the file
+if (!existsSync('./images.json')) {
+    writeFile('./images.json', '[]', (err) => {
+        if (err) logToFile(err);
+    });
+}if (!existsSync('./forReview.json')) {
+    writeFile('./forReview.json', '[]', (err) => {
+        if (err) logToFile(err);
+    });
+}
