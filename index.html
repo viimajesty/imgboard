@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>image board</title>
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    <script>
+        function uuidv4() {
+            return "10000000-1000-4000-8000-100000000000".replace(/[018]/g, c =>
+                (+c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> +c / 4).toString(16)
+            );
+        }
+        var socket = io();
+        socket.on('connect', () => {
+            console.log('connected');
+        });
+        socket.on('disconnect', () => {
+            console.log('disconnected');
+        });
+        socket.on('reloadImages', ((data) => {
+            if (sessionID = data.sessionID) {
+                if (data.submitted) {
+                    alert("we have submitted your submission for review.")
+                }
+
+                location.reload();
+            }
+
+        }))
+
+        window.onload = async () => {
+            const res = await fetch("/images.json");
+            images = await res.json();
+            var imggrid = document.querySelector('.imggrid');
+            for (var i = 0; i < images.length; i++) {
+                var img = document.createElement("img")
+                img.setAttribute("src", images[i].url);
+                img.setAttribute("alt", images[i].alt);
+                img.setAttribute("class", "image-container"); // Apply the class directly to the image
+                imggrid.appendChild(img); // Append the image to the imggrid container
+            }
+
+            document.getElementById("imgUploadForm").addEventListener("submit", (data) => {
+                data.preventDefault();
+                let newURL = document.getElementById("newURL").value;
+                let newALT = document.getElementById("newALT").value;
+                let newName = document.getElementById("newName").value;
+                socket.emit("newImage", { url: newURL, alt: newALT, name: newName, sessionID: uuidv4() });
+                console.log(newURL, newALT);
+            });
+
+        }
+
+
+
+    </script>
+    <style>
+        body { 
+            /*color light blue*/
+            background-color: lightblue;
+            font-family: Verdana, Geneva, Tahoma, sans-serif
+        }
+        .imggrid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            /* Create a grid layout with minimum 200px width */
+            grid-gap: 10px;
+            /* Add gap between grid items */
+        }
+
+        .image-container {
+            border: 1px solid #ccc;
+            /* Add borders around each image */
+            padding: 5px;
+            /* Add some padding for spacing */
+            width: 100%;
+            /* Set the width of the images to 100% */
+            height: 100%;
+            /* Set maximum height for the container */
+            overflow: hidden;
+            /* Hide overflow content */
+        }
+
+        img {
+            width: 100%;
+            /* Ensure images fill their containers */
+            height: 100%;
+            /* Ensure images fill their containers */
+            object-fit: cover;
+            /* Cover the container while maintaining aspect ratio */
+            object-position: center;
+            /* Center the image within its container */
+            display: block;
+            /* Remove any extra spacing */
+        }
+    </style>
+</head>
+
+
+<body>
+    <p>image board</p>
+
+    <form id="imgUploadForm">
+        <input type="text" placeholder="image url" id="newURL" required>
+        <input type="text" placeholder="description/alt" id="newALT" required>
+        <input type="text" placeholder="name" id="newName" value="Anonymous" required>
+        <input type="submit" value="submit">
+    </form>
+
+    <div class="imggrid">
+
+    </div>
+</body>
+
+</html>
