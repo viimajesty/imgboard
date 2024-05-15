@@ -1,19 +1,29 @@
 const express = require('express');
 const https = require('https');
+const http = require('http');
 const { readFileSync, existsSync, mkdirSync, writeFile } = require('node:fs');
 const { join } = require('node:path');
 const { Server } = require('socket.io');
-
+let arg = process.argv[2];
 const app = express();
-const server = https.createServer({
+// if(!arg == "http"){
+// const server = https.createServer({
+//   key: readFileSync('./privkey.pem'),
+//   cert: readFileSync('./cert.pem')
+// }, app);
+// } else { 
+//   const server = http.createServer(app);
+// }
+const server = arg == "http" ? http.createServer(app) : https.createServer({
   key: readFileSync('./privkey.pem'),
   cert: readFileSync('./cert.pem')
 }, app);
+
 const io = new Server(server);
 const fs = require("fs")
 
 server.listen(3002, () => {
-  console.log('server running at http://localhost:3002');
+  console.log('server running at localhost:3002');
 });
 
 
@@ -119,3 +129,4 @@ if (!existsSync('./public/images.json')) {
     if (err) logToFile(err);
   });
 }
+

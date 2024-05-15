@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>image board</title>
     <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+
     <script>
         function uuidv4() {
             return "10000000-1000-4000-8000-100000000000".replace(/[018]/g, c =>
@@ -20,7 +21,7 @@
             console.log('disconnected');
         });
         socket.on('reloadImages', ((data) => {
-            if (sessionID = data.sessionID) {
+            if (sessionID == data.sessionID) {
                 if (data.submitted) {
                     alert("we have submitted your submission for review.")
                 }
@@ -30,17 +31,54 @@
 
         }))
 
+        let loaded = 0;
+        let imagesGlobal;
+        let AllImages = "";
+
+        function loadImages(images) {
+            imagesGlobal = images;
+            console.log(images)
+            let photos = document.getElementById("photos");
+
+            let stopAt = 15;
+            if (images.length < 15) {
+                stopAt = images.length;
+            }
+
+            for (let i = 0; i < stopAt; i++) {
+                AllImages += `<img src="${images[i].url}" alt="${images[i].alt}" />`;
+
+            }
+            loaded = 25;
+            photos.innerHTML = AllImages;
+            let number = photos.getElementsByTagName("img").length;
+            document.getElementById("numberLoaded").innerHTML = number;
+
+        }
+
+        function loadMore() {
+            let photos = document.getElementById("photos");
+
+            let stopAt = loaded + 15;
+            if (imagesGlobal.length < stopAt) {
+                stopAt = imagesGlobal.length;
+            }
+            for (var i = loaded; i < stopAt; i++) {
+                AllImages += `<img src="${imagesGlobal[i].url}" alt="${imagesGlobal[i].alt}" />`;
+            }
+            photos.innerHTML = AllImages;
+            loaded = stopAt; // Update the loaded count
+            let number = photos.getElementsByTagName("img").length;
+            document.getElementById("numberLoaded").innerHTML = number;
+        }
+
+
+
+
         window.onload = async () => {
             const res = await fetch("/images.json");
             images = await res.json();
-            var imggrid = document.querySelector('.imggrid');
-            for (var i = 0; i < images.length; i++) {
-                var img = document.createElement("img")
-                img.setAttribute("src", images[i].url);
-                img.setAttribute("alt", images[i].alt);
-                img.setAttribute("class", "image-container"); // Apply the class directly to the image
-                imggrid.appendChild(img); // Append the image to the imggrid container
-            }
+            loadImages(images)
 
             document.getElementById("imgUploadForm").addEventListener("submit", (data) => {
                 data.preventDefault();
@@ -50,50 +88,72 @@
                 socket.emit("newImage", { url: newURL, alt: newALT, name: newName, sessionID: uuidv4() });
                 console.log(newURL, newALT);
             });
-
         }
-
-
 
     </script>
     <style>
-        body { 
+        body {
             /*color light blue*/
             background-color: lightblue;
             font-family: Verdana, Geneva, Tahoma, sans-serif
         }
-        .imggrid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            /* Create a grid layout with minimum 200px width */
-            grid-gap: 10px;
-            /* Add gap between grid items */
+
+        /*images*/
+        #photos {
+            /* Prevent vertical gaps */
+            line-height: 0;
+            margin-top: 20px;
+
+            -webkit-column-count: 5;
+            -webkit-column-gap: 0px;
+            -moz-column-count: 5;
+            -moz-column-gap: 0px;
+            column-count: 5;
+            column-gap: 0px;
         }
 
-        .image-container {
-            border: 1px solid #ccc;
-            /* Add borders around each image */
-            padding: 5px;
-            /* Add some padding for spacing */
-            width: 100%;
-            /* Set the width of the images to 100% */
-            height: 100%;
-            /* Set maximum height for the container */
-            overflow: hidden;
-            /* Hide overflow content */
+        #photos img {
+            /* Just in case there are inline attributes */
+            width: 100% !important;
+            height: auto !important;
         }
 
-        img {
-            width: 100%;
-            /* Ensure images fill their containers */
-            height: 100%;
-            /* Ensure images fill their containers */
-            object-fit: cover;
-            /* Cover the container while maintaining aspect ratio */
-            object-position: center;
-            /* Center the image within its container */
-            display: block;
-            /* Remove any extra spacing */
+        @media (max-width: 1200px) {
+            #photos {
+                -moz-column-count: 4;
+                -webkit-column-count: 4;
+                column-count: 4;
+            }
+        }
+
+        @media (max-width: 1000px) {
+            #photos {
+                -moz-column-count: 3;
+                -webkit-column-count: 3;
+                column-count: 3;
+            }
+        }
+
+        @media (max-width: 800px) {
+            #photos {
+                -moz-column-count: 2;
+                -webkit-column-count: 2;
+                column-count: 2;
+            }
+        }
+
+        @media (max-width: 400px) {
+            #photos {
+                -moz-column-count: 1;
+                -webkit-column-count: 1;
+                column-count: 1;
+            }
+        }
+
+        #loadMore {
+            margin-top: 30px;
+            margin-bottom: 30px;
+            ;
         }
     </style>
 </head>
@@ -101,7 +161,7 @@
 
 <body>
     <p>image board</p>
-
+    <p><span id="numberLoaded"></span> images loaded</p>
     <form id="imgUploadForm">
         <input type="text" placeholder="image url" id="newURL" required>
         <input type="text" placeholder="description/alt" id="newALT" required>
@@ -109,9 +169,11 @@
         <input type="submit" value="submit">
     </form>
 
-    <div class="imggrid">
 
-    </div>
+
+    <section id="photos"></section>
+    <button onclick="loadMore()" id="loadMore">load more</button>
+
 </body>
 
 </html>
