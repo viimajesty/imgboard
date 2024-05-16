@@ -13,6 +13,7 @@
                 (+c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> +c / 4).toString(16)
             );
         }
+        const sessionID = uuidv4();
         var socket = io();
         socket.on('connect', () => {
             console.log('connected');
@@ -85,7 +86,7 @@
                 let newURL = document.getElementById("newURL").value;
                 let newALT = document.getElementById("newALT").value;
                 let newName = document.getElementById("newName").value;
-                socket.emit("newImage", { url: newURL, alt: newALT, name: newName, sessionID: uuidv4() });
+                socket.emit("newImage", { url: newURL, alt: newALT, name: newName, sessionID: sessionID });
                 console.log(newURL, newALT);
             });
         }
